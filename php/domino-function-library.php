@@ -1,11 +1,41 @@
 <?php 
+
     //creating an assosiative array 
     function deck(){
-        for ($i = 0; $i <= 6; $i++) {
-            for ($j = $i; $j <= 6; $j++) {
-                $cards[] = ["front" => $i, "back" => $j];
+        if(!isset($connected)||$connected == false){
+            require "../dbconnect.php";
+        }
+        //request the number series 0-6 from the databace
+        
+        $query = "SELECT numTiles FROM tiles";
+        $result = $dbcon->query($query);
+        
+        //create temporary array to store them
+        $temp = array();
+        
+        if ($result->num_rows > 0) 
+        {	
+            // takes the results row by row and places them to a temporary array. 
+            while($row = $result->fetch_assoc()) 
+            {
+                $temp[] = $row["numTiles"];
+            }
+            $possible_tiles = $temp;
+        }
+        else
+        {
+            echo 'error';
+        }
+        //dhmiourgei to deck
+        $tilesRange = count($possible_tiles);
+        for ($i = 0; $i < $tilesRange; $i++)
+        {
+            for ($j = $i;$j < $tilesRange; $j++)
+            {
+                $cards[] = ["front"=>($possible_tiles[$i]),"back"=>($possible_tiles[$j])];
             }
         }
+    
         return $cards;
     }
 
@@ -47,11 +77,17 @@
             "end" => FALSE
         ];
         $state = chooseWhoPlaysFirst($state);
+        if($state["current-player"] == -1){
+            do {
+                redraw($state);
+            }while($state["current-player"] == -1);
+        }
         return $state;
     }
 
     //call at the start of the game if we need a redraw
     function redraw($state){
+        print_r("wait while we are redrawing");
         $deck = deck();
         $startingDeck = shuffleDeck($deck);
         $state["players"][0]["hand"] = take(6, $startingDeck);
@@ -63,10 +99,39 @@
 
     //random function that chooses who plays first
     function chooseWhoPlaysFirst($state){
+        /*
         $randIndex = rand(0,1);
         $state["current-player"] = $randIndex;
-        return $state;
+        */
 
+        $player2Value = -1;
+        $player1Value = -1;
+
+        $player1Hand =  $state["players"][0]["hand"];
+        $player2Hand =  $state["players"][1]["hand"];
+
+
+        for($i=0; $i < 7 ; $i++){
+            foreach($player1Hand as $num1 => $value1){
+                if ($value1["front"] == $i && $value1["back"] == $i){
+                    $player1Value = $i;
+                }
+            }
+            foreach($player2Hand as $num2 => $value2){
+                if ($value2["front"] == $i && $value2["back"] == $i){
+                    $player2Value = $i;
+                }
+            }
+        }
+        if (($player2Value == $player1Value)){
+            $state["current-player"] = -1;    
+        }elseif($player1Value > $player2Value){
+            $state["current-player"] = 0;
+        }elseif($player2Value > $player1Value){
+            $state["current-player"] = 1;
+        }
+
+        return $state;
     }
 
     function getCurrentPlayerHand($state) {
@@ -123,7 +188,7 @@
 
 
     function nextTurn($state) {
-        $state["current-player"] ^= 1; //basically it functions as an NAND gate 0-0=1 // 1-1=0
+        $state["current-player"] ^= 1; //basically it functions as an XNOR gate 0-0=1 // 1-1=0
         return $state;
     }
     
@@ -158,11 +223,31 @@
         return nextTurn($state); //to change player turns
     }
 
+    function flipDominoInMyHand($state, $front , $back){
+        $domino = ["front" => $front, "back" => $back];
+        $newDomino = flipDomino($domino);
+        $dominoIndex = findDominoInHand($state,$domino);
+        $playerIndex = $state["current-player"];
+        $state["players"][$playerIndex]["hand"][$dominoIndex] = $newDomino;
+        return $state;
+    }
+
+    function findDominoInHand($state, $domino) {
+        $hand = getCurrentPlayerHand($state);
+        foreach($hand as $num1 => $value1){
+            if($value1 == $domino){
+                return $num1;
+            }
+        }
+        echo"there was an error try again";
+        return -1;
+    }
+
     //function that flips any given domino
     function flipDomino($domino){
         $temp = $domino["front"];
-        $domino["back"] = $domino["front"];
-        $domino["front"] = $temp;
+        $domino["front"] = $domino["back"];
+        $domino["back"] = $temp;
         return $domino;
     }
 
@@ -214,6 +299,48 @@
         }
 
     }
+
+    
+    function stateToJSON($state){
+        $jsonState = json_encode($state);
+        return $jsonState;
+    }
+
+
+    function jsonToState($jsonState){
+        $newState = json_decode($jsonState, true);
+        return $newState;
+    }
+
+
+/*
+    function pileToJSON($state){
+        $pile = $state["pile"];
+        $jsonPile = json_encode($pile);
+        return $jsonPile;
+    }
+
+    
+    function jsonToPile($jsonPile){
+        $newPile = json_decode($jsonPile, true);
+        $state["pile"] = $newPile;
+        return $state;
+    }
+
+    function handToJSON($state, $playerOffset){
+        $hand = $state["players"][$playerOffset]["hand"];
+        $jsonHand = json_encode($hand);
+        return $jsonHand;
+    }
+
+    
+    function jsonTohand($jsonHand, $playerOffset){
+        $newHand = json_decode($jsonHand, true);
+        $state["players"][$playerOffset]["hand"] = $newHand;
+        return $state;
+    }
+
+ */
 
 
 ?>
