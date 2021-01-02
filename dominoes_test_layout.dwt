@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html dir="ltr">
+	<head>
+		<!-- #BeginEditable "doctitle" -->
+		<title>Dominoes test layout</title>
+		<link rel="stylesheet" href="domino.css"/>
+		<!-- #EndEditable -->
+	</head>
+	<body>
+		<div id="main">
+			<div id="head">
+				<h1>Classic Dominoes</h1>
+			</div>
+			<div id="board">
+				<!--here will be the board game -->
+				<!-- #BeginEditable "body" -->
+				<div>
+				</div>
+				<!-- #EndEditable -->
+			</div>
+			<div id="foot">
+				<h4>Copyrights © ADISE20_Dominoes team</h4>
+			</div>
+		</div>
+	</body>
+</html>

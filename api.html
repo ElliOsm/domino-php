@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html dir="ltr">
+	<!-- #BeginTemplate "dominoes_test_layout.dwt" -->
+	<head>
+		<!-- #BeginEditable "doctitle" -->
+		<title>Classic Dominoes</title>
+		<link rel="stylesheet" href="domino.css"/>
+		<style>
+
+
+			#iner_api{
+				top:6%;
+				left:2%;
+				width:96%;
+				height:40%;
+				text-align:center;
+				border-color:gray;
+				border-style:solid;
+				border-width:2px;
+				position:absolute;
+				background-color:gainsboro;
+			}
+			#iner_hand{
+				top:48%;
+				left:2%;
+				width:96%;
+				height:20%;
+				text-align:center;
+				border-color:aquamarine;
+				border-style:solid;
+				border-width:2px;
+				position:absolute;
+				background-color:aliceblue;
+			}
+			#iner_form{
+				top:72%;
+				left:2%;
+				width:96%;
+				position:absolute;
+			}
+		</style>
+		<script type="text/javascript">
+			function api(){
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {					
+					if (this.readyState == 4) {
+						if (this.status == 200) {
+							var hand = document.getElementById("hand");
+							
+							var json_response = JSON.parse(this.responseText);
+							console.log(this.responseText);
+							displayJSONHand(json_response.hand);
+							/*
+							if (json_response.hand !== undefined && json_response.hand !== null) {
+								hand.innerHtml = json_response.hand;
+							}
+							*/
+						}
+						else {
+							document.getElementById("errorMessage").innerText = "The server could not connect";
+						}
+					}
+				};
+				xhttp.open("GET", "php/api.php?&button= start", true);
+				xhttp.send();
+			}
+
+			function draw_api(){
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {					
+					if (this.readyState == 4) {
+						if (this.status == 200) {
+							var hand = document.getElementById("hand");
+									
+							var json_response = JSON.parse(this.responseText);
+							displayJSONHand(json_response.hand);/*
+									
+							if (json_response.hand !== undefined && json_response.hand !== null) {
+								hand.innerHtml = json_response.hand;
+							}*/
+						}
+						else {
+							document.getElementById("errorMessage").innerText = "The server could not connect";
+						}
+					}
+				};
+				xhttp.open("GET", "php/api.php?&button= draw", true);
+				xhttp.send();
+			}
+			
+			function flip_api(){
+				event.preventDefault();
+				var selected_front = document.getElementById("selected_front");
+				var selected_back = document.getElementById("selected_back");
+				
+				if (selected_front.value != "" && selected_front.value !== undefined) {
+					if (selected_back.value != "" && selected_back.value !== undefined) {
+						var xhttp = new XMLHttpRequest();
+						xhttp.onreadystatechange = function() {					
+							if (this.readyState == 4) {
+								if (this.status == 200) {
+									var hand = document.getElementById("hand");
+									
+									var json_response = JSON.parse(this.responseText);
+									displayJSONHand(json_response["hand"]);
+									/*
+									if (json_response.hand !== undefined && json_response.hand !== null) {
+										hand.innerHtml = json_response.hand;
+									}*/
+								}
+								else {
+									document.getElementById("errorMessage").innerText = "The server could not connect";
+								}
+							}
+						};
+						//xhttp.open("GET", "play_api.php?mytile="+selected_tile.value, true);
+						xhttp.open("GET", "php/api.php?front="+selected_front.value+"&back="+selected_back.value+"&button= flip", true);
+						xhttp.send();
+					}
+				}
+				else {
+					document.getElementById("errorMessage").innerText = "Πρέπει να επιλέξεις ένα πλακίδιο.";
+				}
+			}
+			
+			function play_api() {
+				event.preventDefault();
+				var selected_front = document.getElementById("selected_front");
+				var selected_back = document.getElementById("selected_back");
+				
+				if (selected_front.value != "" && selected_front.value !== undefined) {
+					if (selected_back.value != "" && selected_back.value !== undefined) {
+						var xhttp = new XMLHttpRequest();
+						xhttp.onreadystatechange = function() {					
+							if (this.readyState == 4) {
+								if (this.status == 200) {
+									var board_list = document.getElementById("bord_list");
+									var hand = document.getElementById("hand");
+									
+									var json_response = JSON.parse(this.responseText);
+									/*
+									if (json_response.board !== undefined && json_response.board !== null) {
+										board_list.innerHtml = json_response.board;
+									}
+									
+									if (json_response.hand !== undefined && json_response.hand !== null) {
+										hand.innerHtml = json_response.hand;
+									}
+									*/
+									displayJSONHand(json_response["hand"]);
+									displayJSONBoard(json_response["board"]);
+									//To response einai to echo apo thn php.
+								}
+								else {
+									document.getElementById("errorMessage").innerText = "The server could not connect";
+								}
+							}
+						};
+						//xhttp.open("GET", "play_api.php?mytile="+selected_tile.value, true);
+						xhttp.open("GET", "php/api.php?front="+selected_front.value+"&back="+selected_back.value+"&button= play", true);
+						xhttp.send();
+					}
+				}
+				else {
+					document.getElementById("errorMessage").innerText = "Πρέπει να επιλέξεις ένα πλακίδιο.";
+				}
+			}
+
+
+			function displayJSONBoard(arr) {
+				var out = "";
+				var i;
+    			for(i = 0; i < arr.length; i++) {
+        			out += '<a href="' + arr[i].url + '">' + arr[i].display + '</a><br>';
+    			}
+    			document.getElementById("bord_list").innerHTML = out;
+			}
+
+			function displayJSONHand(arr) {
+				var out = "";
+				var i;
+    			for(i = 0; i < arr.length; i++) {
+        			out += '<a href="' + arr[i].url + '">' + arr[i].display + '</a><br>';
+    			}
+    			document.getElementById("hand").innerHTML = out;
+			}
+			
+		</script>
+		<!-- #EndEditable -->
+	</head>
+	<body>
+		<div id="main">
+			<div id="head">
+				<h1>Classic Dominoes</h1>
+			</div>
+			<div id="board">
+				<!--here will be the board game -->
+				<!-- #BeginEditable "body" -->
+				<div id="game" onload="api()">
+					<form action="php/logout.php" method="post" style="text-align:left">
+						<label for="logout"><button>Logout</button></label><br/>
+						<input type="submit" name="logout" style="display:none">
+					</form>
+					<div id="iner_api">Domino Board<hr>
+						<span id="bord_list"></span>
+					</div>
+					<div id="iner_hand">Player's Hand<hr>
+						<span id="hand"></span>
+					</div>
+					<div id="iner_form">
+						<form onsubmit="play_api()" method="post">
+							<label for="selected_front">Front:</label>
+							<input type="text" name="selected_front" id="selected_front" placeholder="enter a number"><br/><br/>
+							<label for="selected_back">Back:</label>
+							<input type="text" name="selected_back" id="selected_back" placeholder="enter a number"><br/><br/>
+							<label for="play_tile"><button>PlayTile</button></label>
+							<input type="submit" name="play_tile" style="display:none">
+							<button id="flip_tile" onclick="flip_api()">Flip Tile</button>
+							<button id="draw_tile" onclick="draw_api()">Draw Tile</button><br/><br/>
+						</form>
+						<span id="errorMessage" style="color:red;font-weight:bold"></span>
+					</div>
+				</div>
+				<!-- #EndEditable -->
+			</div>
+			<div id="foot">
+				<h4>Copyrights © ADISE20_Dominoes team</h4>
+			</div>
+		</div>
+	</body>
+<!-- #EndTemplate -->
+</html>

@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html dir="ltr">
+	<!-- #BeginTemplate "dominoes_test_layout.dwt" -->
+	<head>
+		<!-- #BeginEditable "doctitle" -->
+		<title>Classic Dominoes</title>
+		<link rel="stylesheet" href="domino.css"/>
+		<!-- #EndEditable -->
+	</head>
+	<body>
+		<div id="main">
+			<div id="head">
+				<h1>Classic Dominoes</h1>
+			</div>
+			<div id="board">
+				<!--here will be the board game -->
+				<!-- #BeginEditable "body" -->
+				<div id="game">
+					<div id="iner_game">
+						<form action="php/register.php" method="POST">
+							<label for="uname">New Username</label>
+							<input type="text" name="uname" required placeholder="enter username..."><br/><br/>
+							<label for="pass">New Password</label>
+							<input type="password" name="pass" required placeholder="pass goes here" value=""><br/><br/>
+							<label for="pass">Retype password</label>
+							<input type="password" name="retpass" required placeholder="pass goes here"><br/><br/>
+							<label for="register"><button class="button2">Sign up</button></label><br/>
+							<input type="submit" name="register" style="display:none">
+						</form>
+					</div>
+				</div>
+				<!-- #EndEditable -->
+			</div>
+			<div id="foot">
+				<h4>Copyrights © ADISE20_Dominoes team</h4>
+			</div>
+		</div>
+	</body>
+<!-- #EndTemplate -->
+</html>

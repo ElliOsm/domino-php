@@ -1,0 +1,78 @@
+﻿#main{
+	width:100%;
+	max-height:100%;
+	min-height:100%;
+	background-color:lightgray;
+	position:absolute;
+	top:0%;
+	left:0%;
+}
+#head{
+	width:90%;
+	height:10%;
+	left:5%;
+	top:5%;
+	background-color:aqua;
+	position:absolute;
+}
+#board{
+	width:90%;
+	height:80%;
+	left:5%;
+	background-image:url('dominoes.jpg');
+	background-repeat:no-repeat;
+	background-size:cover;
+	position:absolute;
+	top:15%;
+}
+#iner_board{
+	width:94%;
+	height:94%;
+	left:3%;
+	position:absolute;
+	top:3%;
+	text-align:center;
+}
+#game{
+	width:94%;
+	height:90%;
+	left:3%;
+	position:absolute;
+	top:2%;
+	background-color:white;
+}
+#iner_game{
+	width:80%;
+	height:75%;
+	left:10%;
+	position:absolute;
+	text-align:center;
+	top:25%;
+	font-size:large;
+}
+#foot{
+	width:90%;
+	height:10%;
+	left:5%;
+	background-color:aqua;
+	position:absolute;
+	top:90%;
+}
+h1, h4{
+	text-align:center;
+}
+.button{
+	font-size:x-large;
+	border: 2px solid black;
+	padding: 10px;
+	border-radius: 25px;
+}
+.button2{
+	font-size:medium;
+	border: 1px solid gray;
+	padding: 10px;
+	border-radius: 25px;
+}
+#int_p{
+	background-color:white;
+}
