@@ -76,3 +76,38 @@ h1, h4{
 #int_p{
 	background-color:white;
 }
+#wait_effect {
+    font-size:14px;
+    font-weight: bold;
+}
+#players_hand {
+    display:block;
+}
+.tile_item {
+    border:2px solid black;
+    border-radius:4px;
+    color:black;
+    background-color:white;
+    width:80px;
+    min-width:60px;
+    max-width:120px;
+    margin-right:8px;
+}
+.tile_back {
+    text-align:left;
+    color:brown;
+    font-size:12px;
+    font-weight:bold;
+    width:25px;
+    padding-left:2px;
+    padding-right:5px;
+}
+.tile_front {
+    text-align:right;
+    color:brown;
+    font-size:12px;
+    font-weight:bold;
+    width:25px;
+    padding-left:5px;
+    padding-right:2px;
+}
