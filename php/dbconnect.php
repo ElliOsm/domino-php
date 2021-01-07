@@ -1,6 +1,7 @@
 <?php
 	$host = 'localhost';
 	$user = 'root';
+        //$user = 'user';
 	$pass = '';
 	$database = 'dominoes';
 	$port = '3306';

@@ -1,6 +1,6 @@
 <?php 
 
-    //creating an assosiative array 
+   //creating an assosiative array 
     function deck(){
         if(!isset($connected)||$connected == false){
             require "dbconnect.php";
@@ -23,7 +23,7 @@
         }
         else
         {
-            echo 'error';
+            //echo 'error';
         }
         //dhmiourgei to deck
         $tilesRange = count($possible_tiles);
@@ -86,7 +86,6 @@
 
     //call at the start of the game if we need a redraw
     function redraw($state){
-        print_r("wait while we are redrawing");
         $deck = deck();
         $startingDeck = shuffleDeck($deck);
         $state["players"][0]["hand"] = take(6, $startingDeck);
@@ -156,15 +155,22 @@
         return $state;
     }
 
-    //remove the given domino from player
+    /*remove the given domino from player
     function removeDominoFromPlayer($state, $domino) {
         $oldHand = getCurrentPlayerHand($state);
         $newHand = array_filter($oldHand,  function($oldHand) use($domino){
             $tempFront = $oldHand["front"];
             $tempBack = $oldHand["back"];
-            return $oldHand["front"] != $domino["front"] || $oldHand["back"] != $domino["back"];
+            return $oldHand["front"] != $domino["front"] && $oldHand["back"] != $domino["back"];
         });
         return setCurrentPlayerHand($state,$newHand); 
+    }*/
+	
+	function unsetDominoFromHand($state,$domino){
+        $oldHand = getCurrentPlayerHand($state);
+        $index = findDominoInHand($state,$domino);
+		$oldHand[$index] = ["front" => " ", "back" => " "];
+        return setCurrentPlayerHand($state,$oldHand);
     }
         
 
@@ -174,18 +180,17 @@
         $state["pile"] = drop(1, $oldPile);
         $state = addDominoToPlayer($state, take(1, $oldPile));
         isItOver($state);
-        return $state;
+        return nextTurn($state);
     }   
-    
+   /* 
     function printBoard($state){
         var_dump($state["board"]);
     }
-
     function printCurrentPlayerHand($state){
         $playerIndex = $state["current-player"];
         var_dump($state["players"][$playerIndex]["hand"]);
     }
-
+    */
 
     function nextTurn($state) {
         $state["current-player"] ^= 1; //basically it functions as an XNOR gate 0-0=1 // 1-1=0
@@ -194,21 +199,32 @@
     
     function addDominoToBoard($state, $domino) {
         $board = $state["board"];
+        $lenght = count($board);
         if (empty($board)){
-            $state = removeDominoFromPlayer($state, $domino);
-            array_push($state["board"],$domino);
+            $state = unsetDominoFromHand($state,$domino);
+            array(array_push($state["board"], $domino));
+        }elseif($lenght==1){
+            $onlyElement =  array_pop($board);
+            if($domino["front"] == $onlyElement["back"]){
+                $state = unsetDominoFromHand($state,$domino);
+                array_push($state["board"] , $domino);
+            }elseif($domino["back"] == $onlyElement["front"]){
+                $state = unsetDominoFromHand($state,$domino);
+                array_unshift($state["board"], $domino);
+            }else{
+                return $state;
+            }
         }else{
             $lastElement =  array_pop($board);
-            $firstElemet = array_shift($board);
+            $firstElement = array_shift($board);
             if($domino["front"] == $lastElement["back"]){
-                $state = removeDominoFromPlayer($state, $domino);
-                array_push($state["board"],$domino);
-            }elseif($domino["back"] == $lastElement["front"]){
-                $state = removeDominoFromPlayer($state, $domino);
-                array_unshift($state["board"],$domino);
+                $state = unsetDominoFromHand($state,$domino);
+                array_push($state["board"] , $domino);
+            }elseif($domino["back"] == $firstElement["front"]){
+                $state = unsetDominoFromHand($state,$domino);
+                array_unshift($state["board"], $domino);
             }else{
-                //add maybe a pop up window for illegal move
-                echo ("invalid play");
+                return $state;
             }
         }
         return $state;
@@ -218,15 +234,22 @@
     function playDomino($state, $front , $back){
         $playerIndex = $state["current-player"];
         $domino = ["front" => $front, "back" => $back];
-        $state  = addDominoToBoard($state,$domino);
-        isItOver($state);
-        return nextTurn($state); //to change player turns
+		$newstate  = addDominoToBoard($state,$domino);
+        if($newstate["board"] == $state["board"]){
+            return $state;
+        }
+        //$state  = addDominoToBoard($state,$domino);
+        isItOver($newstate);
+        return nextTurn($newstate); //to change player turns
     }
 
     function flipDominoInMyHand($state, $front , $back){
         $domino = ["front" => $front, "back" => $back];
         $newDomino = flipDomino($domino);
         $dominoIndex = findDominoInHand($state,$domino);
+        if($dominoIndex == -1){
+            return $state;
+        }
         $playerIndex = $state["current-player"];
         $state["players"][$playerIndex]["hand"][$dominoIndex] = $newDomino;
         return $state;
@@ -239,7 +262,7 @@
                 return $num1;
             }
         }
-        echo"there was an error try again";
+        //echo"there was an error try again";
         return -1;
     }
 
@@ -253,23 +276,52 @@
 
     //function that checks when the game is over
     function isItOver($state){
-        $hand = getCurrentPlayerHand($state);
+        //$hand = getCurrentPlayerHand($state);
+		$player1Hand =  $state["players"][0]["hand"];
+        $player2Hand =  $state["players"][1]["hand"];
         $pile = $state["pile"];
-        if(empty($hand)){
-            echo "The Game is over! ". $state["current-player"] . " won!";
+		if (session_status() !== PHP_SESSION_ACTIVE) {
+				session_start();
+		}
+		// places the end message in session.
+		
+        if(isHandEmpty($player1Hand)){
+			$_SESSION['status'] = 3;
+			$_SESSION['win'] = $state["players"][0]["id"];
+			$_SESSION['EndMessage'] = "The Game is over! ". $state["players"][0]["id"] . " won!";
             //maybe freeze all html elements so he cant make any more moves?
             $state["end"] = TRUE;
-        }elseif(empty($pile)){
+			return true;
+        }
+		elseif(isHandEmpty($player2Hand)){
+			$_SESSION['status'] = 3;
+			$_SESSION['win'] = $state["players"][1]["id"];
+			$_SESSION['EndMessage'] = "The Game is over! ". $state["players"][1]["id"] . " won!";
+            //maybe freeze all html elements so he cant make any more moves?
+            $state["end"] = TRUE;
+			return true;
+        }
+		elseif(empty($pile)){
             $winPlayerIndex = countPoints($state);
             if($winPlayerIndex != -1){
                $state["end"] = TRUE;
-               echo "The Game is over! ". $state["players"][$winPlayerIndex]["id"] . " won!";
-               echo '<br />';
+			   $_SESSION['status'] = 3;
+			   $_SESSION['win'] = $state["players"][$winPlayerIndex]["id"];
+			   $_SESSION['EndMessage'] = "The Game is over! ". $state["players"][$winPlayerIndex]["id"] . " won!";
+			   return true;
             }else{
-               echo "its a draw.";
-               echo '<br />';
+               $_SESSION['EndMessage'] = "its a draw.";
             }
         }
+		return false;
+    }
+	 function isHandEmpty($hand){
+        foreach($hand as $num1 => $value1){
+            if(($value1["front"] != " ") || ($value1["back"] != " ")){
+                return FALSE;
+            }
+        }
+        return TRUE;
     }
     
     //function to cound all points to both player hands
@@ -282,10 +334,14 @@
 
         $numMax = [0,0];
         foreach($player1Hand as $num1 => $value1){
-            $adderPlayer1 = $adderPlayer1 + $value1["front"] + $value1["back"];
+            if(($value1["front"] != " ") || ($value1["back"] != " ")){
+                $adderPlayer1 = $adderPlayer1 + $value1["front"] + $value1["back"];
+            }
         }
         foreach($player2Hand as $num2 => $value2){
-            $adderPlayer2 = $adderPlayer2 + $value2["front"] + $value2["back"];
+            if(($value2["front"] != " " || $value2["back"] != " ")){
+                $adderPlayer2 = $adderPlayer2 + $value2["front"] + $value2["back"];
+            }
         }
 
         if($adderPlayer2 == $adderPlayer1){
@@ -295,7 +351,7 @@
         }elseif($adderPlayer2 > $adderPlayer1){
             return 1;
         }else{
-            echo "there was an error";
+            //echo "there was an error";
         }
 
     }
@@ -318,15 +374,76 @@
             $index=1;
         }
         $hand = $state["players"][$index]["hand"];
-        $jsonHand = json_encode($hand);
-        return $jsonHand;
+        //$jsonHand = json_encode($hand);
+        return $hand;
     }
 
     function getBoardToJSON($state) {
         $board = $state["board"];
-        $jsonBoard = json_encode($board);
-        return $jsonBoard;
+        //$jsonBoard = json_encode($board);
+        return $board;
     }
+    
+    //helper function to check if a game is active under conditions.
+    //the function takes our current logged in player and matches him with another active player,
+    //then checks if the two have an active game and returns true on line 361,
+    //in all other instances it returns false as stated on line 364;
+    function check_active_game() {
+        global $dbcon;
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $_SESSION['active_G'] = false;
+        $player1 = $_SESSION['player1'];
+        
+        //$rows_active_players = $active_players->fetch_all(MYSQLI_ASSOC);
+        //$inline_active_players = implode(',',$rows_active_players[0]);
+
+        $query = "SELECT gameID,player1,player2 FROM state 
+            WHERE (player1 = '$player1' OR player2 = '$player1') 
+            AND (player1 IN (SELECT username FROM active_players WHERE username <> '$player1') 
+                OR player2 IN (SELECT username FROM active_players WHERE username <> '$player1'))";
+        $active_game = $dbcon->query($query);
+
+        if ($active_game != false) {
+            if ($active_game->num_rows == 1) {
+                $active_game_row = $active_game->fetch_assoc();
+                $_SESSION['gameID'] = $active_game_row['gameID'];
+                $_SESSION['player1'] = $active_game_row['player1'];
+                $_SESSION['player2'] = $active_game_row['player2'];
+                $_SESSION['active_G'] = true;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    function getActivePlayer($gameID) {
+        global $dbcon;
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $query = "SELECT player1, player2 FROM state WHERE gameID = $gameID";
+        $game = $dbcon->query($query);
+        if ($game !== false) {
+            $game_row = $game->fetch_assoc();
+            if ($_SESSION['user'] == $game_row['player1']) {
+                return $game_row['player1'];
+            }
+            else {
+                return $game_row['player2'];
+            }
+        }
+        else {
+            return false;
+        }
+        //if ($_SESSION[''])
+    }
+	
+	 function getEnd($state){
+        return $state["end"];
+    }
+
 
 /*
     function pileToJSON($state){
@@ -334,28 +451,23 @@
         $jsonPile = json_encode($pile);
         return $jsonPile;
     }
-
     
     function jsonToPile($jsonPile){
         $newPile = json_decode($jsonPile, true);
         $state["pile"] = $newPile;
         return $state;
     }
-
     function handToJSON($state, $playerOffset){
         $hand = $state["players"][$playerOffset]["hand"];
         $jsonHand = json_encode($hand);
         return $jsonHand;
     }
-
     
     function jsonTohand($jsonHand, $playerOffset){
         $newHand = json_decode($jsonHand, true);
         $state["players"][$playerOffset]["hand"] = $newHand;
         return $state;
     }
-
  */
-
-
+ 
 ?>
